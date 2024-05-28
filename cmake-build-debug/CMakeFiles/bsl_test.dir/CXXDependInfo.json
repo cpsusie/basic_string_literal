@@ -1,0 +1,21 @@
+{
+	"bmi-installation" : null,
+	"compiler-frontend-variant" : "MSVC",
+	"compiler-id" : "MSVC",
+	"compiler-simulate-id" : "",
+	"config" : "Debug",
+	"cxx-modules" : {},
+	"dir-cur-bld" : "D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib/cmake-build-debug",
+	"dir-cur-src" : "D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib",
+	"dir-top-bld" : "D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib/cmake-build-debug",
+	"dir-top-src" : "D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib",
+	"exports" : [],
+	"forward-modules-from-target-dirs" : [],
+	"include-dirs" : [],
+	"language" : "CXX",
+	"linked-target-dirs" : 
+	[
+		"D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib/cmake-build-debug/CMakeFiles/bsl_lib.dir"
+	],
+	"module-dir" : "D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib/cmake-build-debug/CMakeFiles/bsl_test.dir"
+}

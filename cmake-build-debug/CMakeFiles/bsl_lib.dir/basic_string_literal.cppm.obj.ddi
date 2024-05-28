@@ -1,0 +1,22 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "CMakeFiles\\bsl_lib.dir\\basic_string_literal.cppm.obj",
+            "outputs": [
+                "D:\\SynologyDrive\\SynologyDrive\\dark_glass_repos\\bsl_lib\\cmake-build-debug\\vc140.pdb",
+                "CMakeFiles\\bsl_lib.dir\\basic_string_literal.cppm.obj.ddi",
+                "basic_string_literal.ifc"
+            ],
+            "provides": [
+                {
+                    "logical-name": "basic_string_literal",
+                    "source-path": "d:\\synologydrive\\synologydrive\\dark_glass_repos\\bsl_lib\\basic_string_literal.cppm",
+                    "is-interface": true
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+	"modules" : 
+	{
+		"basic_string_literal" : 
+		{
+			"bmi" : "D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib/cmake-build-debug/CMakeFiles/bsl_lib.dir/basic_string_literal.ifc",
+			"is-private" : false
+		}
+	},
+	"references" : 
+	{
+		"basic_string_literal" : 
+		{
+			"lookup-method" : "by-name",
+			"path" : "CMakeFiles\\bsl_lib.dir\\basic_string_literal.ifc"
+		}
+	},
+	"usages" : {}
+}

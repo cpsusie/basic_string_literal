@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "CMakeFiles\\bsl_test.dir\\main.cpp.obj",
+            "outputs": [
+                "D:\\SynologyDrive\\SynologyDrive\\dark_glass_repos\\bsl_lib\\cmake-build-debug\\vc140.pdb",
+                "CMakeFiles\\bsl_test.dir\\main.cpp.obj.ddi"
+            ],
+            "requires": [
+                {
+                    "logical-name": "basic_string_literal"
+                }
+            ]
+        }
+    ]
+}

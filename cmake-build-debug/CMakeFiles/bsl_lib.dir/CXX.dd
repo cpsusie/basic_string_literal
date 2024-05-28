@@ -1,0 +1,4 @@
+ninja_dyndep_version = 1.0
+build CMakeFiles\bsl_lib.dir\basic_string_literal.cppm.obj | CMakeFiles\bsl_lib.dir\basic_string_literal.ifc: dyndep
+  restat = 1
+

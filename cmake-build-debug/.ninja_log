@@ -1,0 +1,14 @@
+# ninja log v5
+4	26	7386408879554494	CMakeFiles/bsl_test.dir/main.cpp.obj.ddi	d86a869c405b0e38
+1	87	7386408880147680	CMakeFiles/bsl_lib.dir/basic_string_literal.cppm.obj.ddi	faa8164dc9292a10
+87	108	7386408880374783	CMakeFiles/bsl_lib.dir/CXX.dd	8f123bc693112116
+87	108	7386408880374783	D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib/cmake-build-debug/CMakeFiles/bsl_lib.dir/CXXModules.json	8f123bc693112116
+87	108	7386408880374783	CMakeFiles/bsl_lib.dir/basic_string_literal.cppm.obj.modmap	8f123bc693112116
+113	134	7386408880639881	CMakeFiles/bsl_test.dir/CXX.dd	42b416083bd0040d
+113	134	7386408880639881	D:/SynologyDrive/SynologyDrive/dark_glass_repos/bsl_lib/cmake-build-debug/CMakeFiles/bsl_test.dir/CXXModules.json	42b416083bd0040d
+113	134	7386408880639881	CMakeFiles/bsl_test.dir/main.cpp.obj.modmap	42b416083bd0040d
+110	805	7386408887320799	CMakeFiles/bsl_lib.dir/basic_string_literal.cppm.obj	acb262c0bce1e78c
+110	805	7386408887320799	CMakeFiles/bsl_lib.dir/basic_string_literal.ifc	acb262c0bce1e78c
+805	836	7386408887625870	bsl_lib.lib	1d24daa20eabf667
+808	844	7386408887725877	CMakeFiles/bsl_test.dir/main.cpp.obj	1c5d5f9f6c946b2
+844	1015	7386408889304663	bsl_test.exe	1cf54c02d160b31
