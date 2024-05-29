@@ -1,8 +1,8 @@
 module;
 #include "std_includes.hpp"
 #include "std_ext.hpp"
-#include "character_concepts.hpp"
 #include "universal_concepts.hpp"
+#include "character_concepts.hpp"
 export module basic_string_literal;
 
 static constexpr auto newl = '\n';
@@ -294,10 +294,10 @@ namespace cps::bsl_lib
 
     namespace literals
     {
-        template<internal_string_literal LITERAL>
+        export template<internal_string_literal LITERAL>
         struct factory;
 
-        template<internal_string_literal LITERAL>
+        export template<internal_string_literal LITERAL>
         using bsl_t = typename factory<LITERAL>::bsl_t;
 
         export template<internal_string_literal LITERAL>
@@ -363,7 +363,7 @@ namespace cps::bsl_lib
         };
     }
 
-    template<character TChar, std::size_t BF_SZ>
+    export template<character TChar, std::size_t BF_SZ>
         requires valid_str_bf_sz<BF_SZ>
     class basic_string_literal_view
     {
@@ -517,7 +517,7 @@ namespace cps::bsl_lib
         export using internal::utf16_internal_literal;
         export using internal::utf32_internal_literal;
 
-        template<internal_string_literal LITERAL>
+        export template<internal_string_literal LITERAL>
         struct factory_core
         {
             static constexpr auto value = internal_string_literal{LITERAL};
@@ -526,7 +526,7 @@ namespace cps::bsl_lib
             static constexpr std::size_t bf_sz = literal_type::bf_sz;
         };
 
-        template<internal_string_literal LITERAL>
+        export template<internal_string_literal LITERAL>
         struct factory
         {
             using core_type = factory_core<LITERAL>;
@@ -655,10 +655,10 @@ namespace cps::bsl_lib
         requires (bsl_value<LITERAL>)
     constexpr std::size_t bsl_v_bf_sz_v = detail::bsl_v_bf_sz_v<LITERAL>;
 
-    template<auto LITERAL, typename TChar>
+    export template<auto LITERAL, typename TChar>
     concept is_bsl_value_of = detail::is_bsl_value_of<LITERAL, TChar>;
 
-    template<auto LITERAL>
+    export template<auto LITERAL>
     concept string_literal_value = is_bsl_value_of<LITERAL, char>;
 
 }

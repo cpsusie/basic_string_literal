@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(string_literal)
 
-set(CMAKE_CXX_STANDARD 20 REQUIRED)
+set(CMAKE_CXX_STANDARD 23 REQUIRED)
 
 add_library(bsl_lib)
 
@@ -12,7 +12,7 @@ target_sources(bsl_lib
 )
 
 add_executable(bsl_test main.cpp)
-target_link_libraries(bsl_test PRIVATE bsl_lib)
+target_link_libraries(bsl_test PUBLIC bsl_lib)
 
 
 
