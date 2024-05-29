@@ -1,3 +1,0 @@
-ninja_dyndep_version = 1.0
-build CMakeFiles\bsl_test.dir\main.cpp.obj: dyndep | CMakeFiles\bsl_lib.dir\basic_string_literal.ifc
-

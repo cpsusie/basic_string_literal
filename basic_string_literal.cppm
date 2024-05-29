@@ -10,6 +10,9 @@ static constexpr auto newl = '\n';
 namespace cps::bsl_lib
 {
     export void PrintGreeting(std::string_view message);
+
+    static void try_out_bsl();
+
 }
 
 namespace cps::bsl_lib
@@ -134,7 +137,7 @@ namespace cps::bsl_lib::internal
         std_array_type m_buffer;
 
         consteval internal_string_literal() noexcept requires (bf_sz == 1_szt) = default;
-        consteval internal_string_literal(character_type(&arr)[bf_sz]) noexcept : m_buffer{}
+        consteval internal_string_literal(const character_type(&arr)[bf_sz]) noexcept : m_buffer{}
         {
             std::ranges::copy_n(std::begin(arr), bf_sz, std::begin(m_buffer) );
         }
@@ -176,24 +179,103 @@ namespace cps::bsl_lib::internal
 
     export template<std::size_t EXTENT>
         requires valid_str_bf_sz<EXTENT>
-    internal_string_literal(char(&arr)[EXTENT]) -> internal_string_literal<char, EXTENT>;
+    internal_string_literal(const char(&arr)[EXTENT]) -> internal_string_literal<char, EXTENT>;
 
     export template<std::size_t EXTENT>
         requires valid_str_bf_sz<EXTENT>
-    internal_string_literal(wchar_t(&arr)[EXTENT]) -> internal_string_literal<wchar_t, EXTENT>;
+    internal_string_literal(const wchar_t(&arr)[EXTENT]) -> internal_string_literal<wchar_t, EXTENT>;
 
     export template<std::size_t EXTENT>
         requires valid_str_bf_sz<EXTENT>
-    internal_string_literal(char8_t(&arr)[EXTENT]) -> internal_string_literal<char8_t, EXTENT>;
+    internal_string_literal(const char8_t(&arr)[EXTENT]) -> internal_string_literal<char8_t, EXTENT>;
 
     export template<std::size_t EXTENT>
         requires valid_str_bf_sz<EXTENT>
-    internal_string_literal(char16_t(&arr)[EXTENT]) -> internal_string_literal<char16_t, EXTENT>;
+    internal_string_literal(const char16_t(&arr)[EXTENT]) -> internal_string_literal<char16_t, EXTENT>;
 
     export template<std::size_t EXTENT>
         requires valid_str_bf_sz<EXTENT>
     internal_string_literal(char32_t(&arr)[EXTENT]) -> internal_string_literal<char32_t, EXTENT>;
 
+    export template<std::size_t EXTENT>
+        requires valid_str_bf_sz<EXTENT>
+    using narrow_internal_literal = internal_string_literal<char, EXTENT>;
+
+
+    export template<std::size_t EXTENT>
+        requires valid_str_bf_sz<EXTENT>
+    using wide_internal_literal = internal_string_literal<wchar_t, EXTENT>;
+
+    export template<std::size_t EXTENT>
+        requires valid_str_bf_sz<EXTENT>
+    using utf8_internal_literal = internal_string_literal<char8_t, EXTENT>;
+
+    export template<std::size_t EXTENT>
+            requires valid_str_bf_sz<EXTENT>
+    using utf16_internal_literal = internal_string_literal<char16_t, EXTENT>;
+
+    export template<std::size_t EXTENT>
+            requires valid_str_bf_sz<EXTENT>
+    using utf32_internal_literal = internal_string_literal<char32_t, EXTENT>;
+
+    namespace detail
+    {
+        template<typename T>
+        struct is_internal_string_literal : public std::false_type {};
+
+        template<character TChar, std::size_t EXTENT>
+            requires valid_str_bf_sz<EXTENT>
+        struct is_internal_string_literal<internal_string_literal<TChar, EXTENT>> : public std::true_type {};
+
+        template<typename T>
+        concept isl_type = is_internal_string_literal<T>{}();
+    }
+
+    export template<typename T>
+    concept internal_lit_type = detail::isl_type<T>;
+
+    export template<internal_lit_type T>
+    using char_t = std::remove_cvref_t<typename T::character_type>;
+
+    export template<internal_lit_type T>
+    constexpr std::size_t buff_size_v = T::bf_sz;
+
+    export template<internal_lit_type T>
+    using array_t = std::remove_cvref_t<typename T::std_array_type>;
+
+    export template<typename T, typename TChar>
+    concept internal_literal_of = character<TChar> && internal_lit_type<T> && requires
+    {
+        same_as_without_cvref<TChar, char_t<T>>;
+    };
+
+    export template<typename T>
+    concept narrow_internal_lit = internal_literal_of<T, char>;
+
+    export template<typename T>
+    concept wide_internal_lit = internal_literal_of<T, wchar_t>;
+
+    export template<typename T>
+    concept utf8_internal_lit = internal_literal_of<T, char8_t>;
+
+    export template<typename T>
+    concept utf16_internal_lit = internal_literal_of<T, char16_t>;
+
+    export template<typename T>
+    concept utf32_internal_lit = internal_literal_of<T, char8_t>;
+
+    export template<typename T, std::size_t EXTENT>
+    concept internal_lit_of_extent = internal_lit_type<T> && valid_str_bf_sz<EXTENT> && buff_size_v<T> == EXTENT;
+
+    export template<typename TStrLitOne, typename TStrLitTwo>
+    concept compatible_internal_literals = internal_lit_type<TStrLitOne> && internal_lit_type<TStrLitTwo> && requires
+    {
+        same_as_without_cvref<char_t<TStrLitOne>, char_t<TStrLitTwo>>;
+    };
+
+    export template<typename TStrLitOne, typename TStrLitTwo>
+    concept distinct_typed_compatible_literals = compatible_internal_literals<TStrLitOne, TStrLitTwo> &&
+            !same_as_without_cvref<TStrLitOne, TStrLitTwo>;
 }
 
 namespace cps::bsl_lib
@@ -208,10 +290,19 @@ namespace cps::bsl_lib
     export template<internal_string_literal LITERAL>
     class basic_string_literal;
 
+    export using internal::internal_string_literal;
+
     namespace literals
     {
+        template<internal_string_literal LITERAL>
+        struct factory;
+
+        template<internal_string_literal LITERAL>
+        using bsl_t = typename factory<LITERAL>::bsl_t;
+
         export template<internal_string_literal LITERAL>
-        consteval auto operator""_bsl() -> basic_string_literal<LITERAL>;
+        consteval auto operator""_bsl() noexcept -> bsl_t<LITERAL>;
+
     }
 
     namespace traits
@@ -226,7 +317,7 @@ namespace cps::bsl_lib
             using traits_t = std::char_traits<char_t>;
             static constexpr std::size_t bf_sz = std::tuple_size_v<array_t>;
             static constexpr std::span<const char_t, bf_sz> array_view = literal_value.m_buffer;
-            static constexpr auto string_view_value = std::basic_string_view<char_t, traits_t>{array_view.data()};
+
         public:
             using value_type = char_t;
             using traits_type = traits_t;
@@ -238,6 +329,8 @@ namespace cps::bsl_lib
             using internal_string_literal_type = internal_string_literal<value_type, bf_sz>;
             using basic_string_literal_type = basic_string_literal<literal_value>;
             using basic_string_literal_view_type = basic_string_literal_view<value_type, bf_sz>;
+
+            static constexpr auto as_string_view = std_sv_type{literal_value.m_buffer.data()};
 
             static constexpr std::size_t buffer_extent = bf_sz;
 
@@ -261,17 +354,10 @@ namespace cps::bsl_lib
                 return array_view;
             }
 
-            constexpr auto get_string_view() const noexcept -> std_sv_type
-            {
-                return string_view_value;
-            }
-
-            static consteval auto get_bsl() noexcept -> basic_string_literal_type;
-
             template<typename TAllocator = std::allocator<value_type>>
             static constexpr auto get_std_string() -> std_string_type<TAllocator>
             {
-                return static_cast<std_string_type<TAllocator>>(string_view_value);
+                return static_cast<std_string_type<TAllocator>>(as_string_view);
             }
 
         };
@@ -316,16 +402,22 @@ namespace cps::bsl_lib
         cspan_t m_lit_view;
     };
 
-
-
-    template<internal_string_literal LITERAL>
+    export template<internal_string_literal LITERAL>
     class basic_string_literal
     {
         using tv_info_t = traits::isl_value_and_type_data<LITERAL>;
         using char_t = typename tv_info_t::value_type;
         static constexpr std::size_t bf_sz = tv_info_t::buffer_extent;
         using bsl_view_t = basic_string_literal_view<char_t, bf_sz>;
+        using isl_t = typename tv_info_t::internal_string_literal_type;
+
     public:
+
+        template<internal_string_literal OTH_LITERAL>
+        friend class basic_string_literal;
+
+        template<internal_string_literal OTH_LITERAL>
+        friend class literals::factory;
 
         using value_type = char_t;
         using traits_type = std::char_traits<value_type>;
@@ -344,52 +436,136 @@ namespace cps::bsl_lib
         constexpr basic_string_literal& operator=(const basic_string_literal&) noexcept = delete;
         constexpr basic_string_literal& operator=(basic_string_literal&& ) noexcept = delete;
 
+
         template<typename TAllocator = std::allocator<value_type>>
-        constexpr explicit operator string_type<TAllocator>() const
+        [[nodiscard]] constexpr explicit operator string_type<TAllocator>() const
         {
             return tv_info_t::template get_std_string<TAllocator>();
         }
 
-        consteval explicit operator std_sv_type() const noexcept
+        template<typename TAllocator = std::allocator<value_type>>
+        [[nodiscard]] constexpr auto to_string() const -> string_type<TAllocator>
         {
-            return tv_info_t::get_string_view();
+            return static_cast<string_type<TAllocator>>(*this);
         }
 
-        constexpr auto to_std_array() const noexcept -> array_type
+        [[nodiscard]] consteval explicit operator std_sv_type() const noexcept
+        {
+            return tv_info_t::as_string_view;
+        }
+
+        [[nodiscard]] consteval auto to_std_sv() const noexcept -> std_sv_type
+        {
+            return static_cast<std_sv_type>(*this);
+        }
+
+        [[nodiscard]] constexpr auto to_std_array() const noexcept -> array_type
         {
             return tv_info_t::get_array();
         }
 
-        constexpr auto to_array_view() const noexcept -> array_view_type
+        [[nodiscard]] constexpr auto to_array_view() const noexcept -> array_view_type
         {
             return tv_info_t::get_array_view();
         }
 
+        constexpr bool operator==(const basic_string_literal& other) const noexcept
+        {
+            return true;
+        }
 
+        constexpr std::strong_ordering operator<=>(const basic_string_literal& other) const noexcept
+        {
+            return std::strong_ordering::equal;
+        }
+
+        template<typename TOtherLiteral>
+            requires (internal::distinct_typed_compatible_literals<basic_string_literal, TOtherLiteral>)
+        constexpr bool operator==(const TOtherLiteral& other) const noexcept
+        {
+            return static_cast<std_sv_type>(*this) == static_cast<std_sv_type>(other);
+        }
+
+        template<typename TOtherLiteral>
+            requires (internal::distinct_typed_compatible_literals<basic_string_literal, TOtherLiteral>)
+        constexpr std::strong_ordering operator<=>(const TOtherLiteral& other) const noexcept
+        {
+            return static_cast<std_sv_type>(*this) <=> static_cast<std_sv_type>(other);
+        }
+
+
+
+        friend auto operator<<(ostream_type& os, basic_string_literal literal)
+        {
+            os << literal.to_std_sv();
+        }
 
     private:
         consteval basic_string_literal() noexcept = default;
 
     };
 
-    template<internal_string_literal LITERAL>
-    consteval auto traits::isl_value_and_type_data<LITERAL>::get_bsl() noexcept -> basic_string_literal_type
-    {
-        return basic_string_literal_type{};
-    }
+
 
     namespace literals
     {
-        export template<internal_string_literal LITERAL>
-        consteval auto operator""_bsl() -> basic_string_literal<LITERAL>
+
+        export using internal::narrow_internal_literal;
+        export using internal::wide_internal_literal;
+        export using internal::utf8_internal_literal;
+        export using internal::utf16_internal_literal;
+        export using internal::utf32_internal_literal;
+
+        template<internal_string_literal LITERAL>
+        struct factory_core
         {
-            using isl_t = traits::isl_value_and_type_data<LITERAL>;
-            return isl_t::get_bsl();
+            static constexpr auto value = internal_string_literal{LITERAL};
+            using literal_type = std::remove_cvref_t<decltype(value)>;
+            using char_type = std::remove_cvref_t<typename literal_type::character_type>;
+            static constexpr std::size_t bf_sz = literal_type::bf_sz;
+        };
+
+        template<internal_string_literal LITERAL>
+        struct factory
+        {
+            using core_type = factory_core<LITERAL>;
+            using char_type = typename core_type::char_type;
+            static constexpr std::size_t bf_sz = core_type::bf_sz;
+            using isl_t = internal_string_literal<char_type, bf_sz>;
+            static constexpr auto literal_value = isl_t{LITERAL};
+            using bsl_t= basic_string_literal<literal_value>;
+
+            consteval factory() noexcept = default;
+
+            constexpr auto operator()() const noexcept -> bsl_t
+            {
+                return bsl_t{};
+            }
+        };
+
+        export template<internal_string_literal LITERAL>
+        consteval auto operator""_bsl() noexcept -> bsl_t<LITERAL>
+        {
+            constexpr auto fact = factory<LITERAL>{};
+            return fact();
         }
+
+
+
     }
 }
 
 void cps::bsl_lib::PrintGreeting(std::string_view message)
 {
+    using cps::bsl_lib::literals::operator""_bsl;
     std::cout << "Greeting message: " << std::quoted(message) << "." << newl;
+    std::cout << "Here is my first string literal: " << std::quoted("Hi mom!"_bsl.to_std_sv()) << "." << newl;
+}
+
+void cps::bsl_lib::try_out_bsl()
+{
+     using namespace cps::bsl_lib::literals;
+
+     constexpr auto hi = "Hi mom!"_bsl;
+     std::cout << "Hello msg: " << hi.to_std_sv() << ".";
 }
