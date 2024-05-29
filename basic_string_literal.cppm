@@ -429,6 +429,7 @@ namespace cps::bsl_lib
         template<typename TAllocator = std::allocator<value_type>>
         using string_type = typename tv_info_t::template std_string_type<TAllocator>;
 
+        static constexpr std::size_t buffer_extent = bf_sz;
 
         constexpr basic_string_literal(const basic_string_literal& other) = default;
         constexpr ~basic_string_literal() noexcept = default;
@@ -549,23 +550,152 @@ namespace cps::bsl_lib
             constexpr auto fact = factory<LITERAL>{};
             return fact();
         }
-
-
-
     }
+
+    namespace detail
+    {
+        template<typename T>
+        struct is_bsl_type : public std::false_type{};
+
+        template<internal_string_literal LITERAL>
+        struct is_bsl_type<basic_string_literal<LITERAL>> : public std::true_type {};
+
+        template<typename T>
+        concept bsl_type = is_bsl_type<T>::value;
+
+        template<bsl_type TBasicStrLit>
+        using bsl_char_t = std::remove_cvref_t<typename TBasicStrLit::value_type>;
+
+        template<bsl_type TBasicStrLit>
+        constexpr std::size_t bsl_buffer_size_v = TBasicStrLit::buffer_extent;
+
+        template<bsl_type TBasicStrLit>
+        using bsl_internal_sl_t = internal_string_literal<bsl_char_t<TBasicStrLit>, bsl_buffer_size_v<TBasicStrLit>>;
+
+        template<typename T>
+        concept narrow_string_lit_type = bsl_type<T> && same_as_without_cvref<char, bsl_char_t<T>>;
+
+        template<typename T>
+        concept wide_string_lit_type = bsl_type<T> && same_as_without_cvref<wchar_t, bsl_char_t<T>>;
+
+        template<typename T>
+        concept utf8_string_lit_type = bsl_type<T> && same_as_without_cvref<char8_t, bsl_char_t<T>>;
+
+        template<typename T>
+        concept utf16_string_lit_type = bsl_type<T> && same_as_without_cvref<char16_t, bsl_char_t<T>>;
+
+        template<typename T>
+        concept utf32_string_lit_type = bsl_type<T> && same_as_without_cvref<char32_t, bsl_char_t<T>>;
+
+        template<auto LITERAL>
+        concept is_bsl_value_core = requires
+        {
+            { basic_string_literal{LITERAL} } -> bsl_type;
+        };
+
+        template<auto LITERAL>
+            requires (is_bsl_value_core<LITERAL>)
+        struct bsl_type_data
+        {
+            static constexpr auto bsl_value = basic_string_literal{LITERAL};
+            using bsl_type = std::remove_cvref_t<decltype(bsl_value)>;
+            using char_type = typename bsl_type::value_type;
+            static constexpr std::size_t bf_sz = bsl_type::buffer_extent;
+            using isl_type = internal_string_literal<char_type, bf_sz>;
+        };
+
+        template<auto LITERAL>
+            requires (is_bsl_value_core<LITERAL>)
+        using bsl_v_char_t = std::remove_cvref_t<typename bsl_type_data<LITERAL>::char_type>;
+
+        template<auto LITERAL>
+            requires (is_bsl_value_core<LITERAL>)
+        constexpr std::size_t bsl_v_bf_sz_v = bsl_type_data<LITERAL>::bf_sz;
+
+        template<auto LITERAL, typename TChar>
+        concept is_bsl_value_of = character<TChar> && is_bsl_value_core<LITERAL> &&
+                same_as_without_cvref<bsl_v_char_t<LITERAL>, TChar>;
+    }
+
+    export template<typename T>
+    concept bsl_type = detail::bsl_type<T>;
+
+    export template<bsl_type TBasicStrLit>
+    using bsl_char_t = detail::bsl_char_t<TBasicStrLit>;
+
+    export template<bsl_type TBasicStrLit>
+    constexpr std::size_t bsl_buffer_size_v = detail::bsl_buffer_size_v<TBasicStrLit>;
+
+    export template<bsl_type TBasicStrLit>
+    using bsl_internal_sl_t = detail::bsl_internal_sl_t<TBasicStrLit>;
+
+    export template<typename T>
+    concept narrow_string_lit_type = detail::narrow_string_lit_type<T>;
+
+    export template<typename T>
+    concept wide_string_lit_type = detail::wide_string_lit_type<T>;
+
+    export template<typename T>
+    concept utf8_string_lit_type = detail::utf8_string_lit_type<T>;
+
+    export template<typename T>
+    concept utf16_string_lit_type = detail::utf16_string_lit_type<T>;
+
+    export template<typename T>
+    concept utf32_string_lit_type = detail::utf32_string_lit_type<T>;
+
+    export template<auto LITERAL>
+    concept bsl_value = detail::is_bsl_value_core<LITERAL>;
+
+    export template<auto LITERAL>
+            requires (bsl_value<LITERAL>)
+    using bsl_v_char_t = detail::bsl_v_char_t<LITERAL>;
+
+    export template<auto LITERAL>
+        requires (bsl_value<LITERAL>)
+    constexpr std::size_t bsl_v_bf_sz_v = detail::bsl_v_bf_sz_v<LITERAL>;
+
+    template<auto LITERAL, typename TChar>
+    concept is_bsl_value_of = detail::is_bsl_value_of<LITERAL, TChar>;
+
+    template<auto LITERAL>
+    concept string_literal_value = is_bsl_value_of<LITERAL, char>;
+
 }
 
 void cps::bsl_lib::PrintGreeting(std::string_view message)
 {
     using cps::bsl_lib::literals::operator""_bsl;
     std::cout << "Greeting message: " << std::quoted(message) << "." << newl;
-    std::cout << "Here is my first string literal: " << std::quoted("Hi mom!"_bsl.to_std_sv()) << "." << newl;
+    try_out_bsl();
 }
 
 void cps::bsl_lib::try_out_bsl()
 {
      using namespace cps::bsl_lib::literals;
+     using detail::is_bsl_value_core;
+     using detail::bsl_type;
+     using detail::bsl_v_char_t;
+     using detail::bsl_v_bf_sz_v;
+     using detail::is_bsl_value_of;
 
+
+     constexpr auto hi_arr = std::array{'h', 'i', '\0'};
      constexpr auto hi = "Hi mom!"_bsl;
+     using hi_t = std::remove_cvref_t<decltype(hi)>;
+     static_assert(bsl_type<hi_t>);
+
+     using hi_v_char_t = bsl_v_char_t<hi>;
+
+     static_assert(std::is_same_v<char, hi_v_char_t>);
+
+     static_assert(is_bsl_value_core<hi>);
+
+     static_assert(string_literal_value<hi>);
+
+     static_assert(8_szt == bsl_v_bf_sz_v<hi>);
+
      std::cout << "Hello msg: " << hi.to_std_sv() << ".";
+
+
 }
